@@ -1,0 +1,61 @@
+add_filter('fluentform_rendering_field_data_select', function ($data, $form) {
+    
+    //google sheet shared as CSV link
+    $csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTdZ-5SotnF7trxCAUj8WgzLiFK1kLqNkGU8_u-A12PNFREcuH6XvRpe2Jp3qtLVuyHFz98rfiZiPq-/pub?output=csv';
+    
+    $columName = 'Forms'; // 'Forms' is the column name
+    $uniqueData = true;     // remove duplicate values
+	
+	$formIds = [13, 20]; //Enter form IDs using comma
+    
+    if (!in_array($form->id, $formIds)) {
+		
+        return $data;
+    }
+    
+    // check if the name attribute is 'dropdown' , it is by default dropdown for the first dropdown input
+    
+    if (\FluentForm\Framework\Helpers\ArrayHelper::get($data, 'attributes.name') != 'dropdown') {
+		
+		
+        return $data;
+    }
+    
+    $result=[] ;
+    
+    if (!class_exists('CSVParser')) {
+        require_once(FLUENTFORMPRO_DIR_PATH . 'libs/CSVParser/CSVParser.php');
+    }
+    
+    $csvParser = new \CSVParser;
+    $content = file_get_contents($csvUrl);
+    $csvParser->load_data($content);
+    $rows = $csvParser->parse($csvParser->find_delimiter());
+    
+    if(!$rows) {
+        return $data;
+    }
+    $headers = array_shift($rows); // remove the first item
+    $headerIndex = array_search($columName, $headers);
+    
+    foreach ($rows as $row) {
+        
+        if(!empty($row[$headerIndex])) {
+            $result[]=
+                
+                [
+                    "label"      => $row[$headerIndex],
+                    "value"      => $row[$headerIndex],
+                    "calc_value" => ""
+                ];
+        }
+    }
+
+    
+    $result = ($uniqueData === true) ?   array_map("unserialize", array_unique(array_map("serialize", $result))) :  $result;
+    
+    // Merging with existing options here
+    $data['settings']['advanced_options'] = array_merge($data['settings']['advanced_options'], $result );
+    return $data;
+
+}, 10, 2);
