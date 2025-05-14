@@ -1,6 +1,6 @@
-add_filter('fluentform_rendering_field_data_select', function ($data, $form) {
+add_filter('fluentform/rendering_field_data_select', function ($data, $form) {
     
-    //google sheet shared as CSV link
+    //Google sheet shared as CSV link
     $csvUrl = 'Sheet URL in CSV';
     
     $columName = 'Forms'; // 'Forms' is the column name
@@ -13,7 +13,7 @@ add_filter('fluentform_rendering_field_data_select', function ($data, $form) {
         return $data;
     }
     
-    // check if the name attribute is 'dropdown' , it is by default dropdown for the first dropdown input
+    // check if the name attribute is 'dropdown', it is by default dropdown for the first dropdown input
     
     if (\FluentForm\Framework\Helpers\ArrayHelper::get($data, 'attributes.name') != 'dropdown') {
 		
